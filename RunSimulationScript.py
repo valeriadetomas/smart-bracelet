@@ -60,7 +60,7 @@ print ">>>Will boot at time",  time1/t.ticksPerSecond(), "[sec]";
 
 print "Creating node 2...";
 node2 = t.getNode(2);
-time2 = 28*t.ticksPerSecond();
+time2 = 0*t.ticksPerSecond();
 node2.bootAtTime(time2);
 print ">>>Will boot at time", time2/t.ticksPerSecond(), "[sec]";
 

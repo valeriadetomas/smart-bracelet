@@ -1,21 +1,44 @@
  generic module FakeSensorP() {
 
-	provides interface Read<uint16_t>;
-	
+	provides interface Read<loc>;
 	uses interface Random;
-	uses interface Timer<TMilli> as Timer0;
+	
 
 } implementation {
 
+	loc location;
+	int prob_number;
+	
+	task void readDone();
+
 	//***************** Boot interface ********************//
 	command error_t Read.read(){
-		call Timer0.startOneShot( 10 );
+		post readDone();
 		return SUCCESS;
 	}
 
-	//***************** Timer0 interface ********************//
-	event void Timer0.fired() {
-		signal Read.readDone( SUCCESS,  call Random.rand16());
+	
+	task void readDone() {
+		location.x = call Random.rand16();
+	    location.y = call Random.rand16();
+		
+		prob_number = call Random.rand16();
+		
+		
+		if (prob_number%10 <= 2){
+		  location.status = STANDING;
+		} 
+		if (prob_number%10 <= 5 && prob_number%10 >= 3){
+		  location.status = WALKING;
+		} 
+		if (prob_number%10 <= 8 && prob_number%10 >=6){
+		  location.status = RUNNING;
+		} 
+		else {
+		  location.status = FALLING;
+		}
+		
+		signal Read.readDone( SUCCESS, location);
 	}
 }
 

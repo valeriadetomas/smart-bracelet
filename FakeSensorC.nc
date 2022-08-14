@@ -1,12 +1,11 @@
 generic configuration FakeSensorC() {
 
-	provides interface Read<uint16_t>;
+	provides interface Read<loc>;
 
 } implementation {
 
 	components MainC, RandomC;
 	components new FakeSensorP();
-	components new TimerMilliC();
 	
 	//Connects the provided interface
 	Read = FakeSensorP;
@@ -15,7 +14,5 @@ generic configuration FakeSensorC() {
 	FakeSensorP.Random -> RandomC;
 	RandomC <- MainC.SoftwareInit;
 	
-	//Timer interface	
-	FakeSensorP.Timer0 -> TimerMilliC;
 
 }

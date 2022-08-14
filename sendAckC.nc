@@ -11,17 +11,17 @@ module sendAckC {
     interface Receive;
     interface AMSend;
 	//interface for timer
-	interface Timer<TMilli> as MilliTimer;
-	//interface Timer<TMilli> as MilliTimer_pairing;
-	//interface Timer<TMilli> as MilliTimer_child;
-	//interface Timer<TMilli> as MilliTimer_alert;
+	interface Timer<TMilli> as MilliTimer_pairing;
+	interface Timer<TMilli> as MilliTimer_child;
+	interface Timer<TMilli> as MilliTimer_alert;
     //other interfaces, if needed
     interface SplitControl;
     interface PacketAcknowledgements;
     interface Packet;
+    interface AMPacket;
 	
 	//interface used to perform sensor reading (to get the value from a sensor)
-	interface Read<uint16_t> as FakeSensor;
+	interface Read<loc> as FakeSensor;
   }
 
 } implementation {
@@ -29,12 +29,11 @@ module sendAckC {
   int random_p, random_c;
   char key_p[20], key_c[20];
   bool locked = FALSE;
+  bool paired = FALSE;
+  bool operation_mode = FALSE;
   message_t packet;
 
-  uint8_t last_digit = 7;
-  uint8_t counter=0;
-  uint8_t acks=0;
-  uint8_t rec_id = 28;
+  am_addr_t pairing_address;
   
   
 
@@ -61,21 +60,23 @@ module sendAckC {
 	call PacketAcknowledgements.requestAck(&packet); 
 	
 	
-	if (call AMSend.send(2, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID==1) {
-		dbg("radio_send", "radio_send: request message type: %d. Counter: %hu \n", msg->msg_type, counter);
+	if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID==1) {
+		dbg("radio_send", "radio_send: request message type: %d. \n", msg->msg_type);
 	}
 	
 	
  }        
 
   //****************** Task send response *****************//
-  void sendResp() {
+  void check_pairing() {
   	/* This function is called when we receive the REQ message.
   	 * Nothing to do here. 
   	 * `call Read.read()` reads from the fake sensor.
   	 * When the reading is done it raises the event read done.
   	 */
-	call FakeSensor.read();
+  	 
+  	 
+	//call FakeSensor.read();
   }
 
   //***************** Boot interface ********************//
@@ -84,13 +85,13 @@ module sendAckC {
 	random_p = rand()%2;
 	random_c = rand()%2; 
 	
-	if(TOS_NODE_ID == 1){
+	if(TOS_NODE_ID == 1 || TOS_NODE_ID == 3){
 		switch(random_p){
 		case 0:
 			strcpy(key_p, "4nchdjskcnfbghruejfn");
 			break;
 		case 1:
-			strcpy(key_p, "4nchdde4kcnfbhr908fn");
+			strcpy(key_p, "8nchdde4kcnfbhr908fn");
 			break;
 		default:
 			break;
@@ -104,7 +105,7 @@ module sendAckC {
 			strcpy(key_c, "4nchdjskcnfbghruejfn");
 			break;
 		case 1:
-			strcpy(key_c, "4nchdde4kcnfbhr908fn");
+			strcpy(key_c, "8nchdde4kcnfbhr908fn");
 			break;
 		default:
 			break;
@@ -122,7 +123,7 @@ module sendAckC {
   	/* Fill it ... */
   	if(err == SUCCESS){
   		dbg("boot", "success\n");
-  		call MilliTimer.startPeriodic(1000);
+  		call MilliTimer_pairing.startPeriodic(500);
   	}else{
   		dbg("boot", "else\n");
   		call SplitControl.start();
@@ -135,7 +136,7 @@ module sendAckC {
   }
 
   //***************** MilliTimer interface ********************//
-  event void MilliTimer.fired() {
+  event void MilliTimer_pairing.fired() {
 	/* This event is triggered every time the timer fires.
 	 * When the timer fires, we send a request
 	 * Fill this part...
@@ -150,54 +151,64 @@ module sendAckC {
     	
     	my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
     	msg->msg_type = 1;
-    	memcpy(msg->key, key_p, 20);
-    	dbg("role", "key %s  !!!!!!!!!!!!!!!!!!!!!!\n", msg->key);
+    	if (TOS_NODE_ID == 1){
+    		memcpy(msg->key, key_p, 20);
+    	}
+    	else if (TOS_NODE_ID ==2){
+    		memcpy(msg->key, key_c, 20);
+        }
+    	dbg("role", "mote: %u key %-20s\n", TOS_NODE_ID, msg->key);
 		if (msg == NULL) {
 			return;
 		}
-		
-		counter = counter +1;
 
 		sendReq();
     }
 	
+	
   }
+  
+  event void MilliTimer_child.fired() {
+		dbg("operation_phase", "Call sensor read\n");
+		call FakeSensor.read();
+	}
+	
+	//***************** MilliTimer_alert interface ********************//
+  event void MilliTimer_alert.fired() {
+		//dbg("alert", "ALERT! CHILD MISSING!: %s\n", key);
+		//dbg("alert", "location of the child, X = %hhu and Y = %hhu \n", last_child_loc.x, last_child_loc.y);
+	}
   
 
   //********************* AMSend interface ****************//
   event void AMSend.sendDone(message_t* buf,error_t err) {
-	/* This event is triggered when a message is sent 
-	 *
-	 * STEPS:
-	 * 1. Check if the packet is sent
-	 * 2. Check if the ACK is received (read the docs)
-	 * 2a. If yes, stop the timer according to your id. The program is done
-	 * 2b. Otherwise, send again the request
-	 * X. Use debug statements showing what's happening (i.e. message fields)
-	 */
+
+	 //Check if the ACK is received (read the docs)
+	 
+	
 	 my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
 	 
-	 msg->counter = counter;
+	
 	 
 	 if(&packet == buf && call PacketAcknowledgements.wasAcked(buf)){
-	 	
-	 	acks++;
 	
-	 	 if (msg -> msg_type ==1 && acks < last_digit){
+	 	 if (!paired){
 	 	 	locked = FALSE; 
-	 	 	msg->counter = counter;
-	 	 	dbg("radio_ack", "radio_ack: the %dth ACK is received at counter %hu.\n", acks, counter);
+
+	 	 	dbg("radio_ack", "Still in pairing phase\n");
 	 	 } 
 	 	 
-	 	 else if (acks == last_digit){
-	 	 	dbg("radio_ack", "radio_ack: the %dth ACK is received at counter %hu.\n", acks, counter);
-	 	 	dbg("role", "role: ----- timer stopped at counter %hu -----.\n", msg->counter);
-	 	 	call MilliTimer.stop();
+	 	 else {
+	 	 	call MilliTimer_pairing.stop();
+	 	 	operation_mode = TRUE; //conclusa fase di pairing e continua fase di operation
+	 	 	
+	 	 	if (TOS_NODE_ID==2 || TOS_NODE_ID ==4){ //nel caso di child
+	 	 		call MilliTimer_child.startPeriodic(10000); //una info ogni 10 secondi
+			}
 	 	 }
 	 }else{
-	 	if(msg->counter < rec_id){
 	 		locked = FALSE;
-	 	}
+	 	
 	 }
   }
 
@@ -207,23 +218,38 @@ module sendAckC {
 	 *
 	 * STEPS:
 	 * 1. Read the content of the message
-	 * 2. Check if the type is request (REQ)
-	 * 3. If a request is received, send the response
-	 * X. Use debug statements showing what's happening (i.e. message fields)
+	 * 2. Check the type of message and do all the things that should be done
+	 * 3. quando ricevi info -> fai partire timer di 60 sec e salva location in last_child_loc
 	 */
 	
 	 
 	if (len != sizeof(my_msg_t)) {return buf;}
-	else if(counter < rec_id + last_digit){
+	else {
 	  my_msg_t* msg = (my_msg_t*)payload;
-	  dbg("radio_rec", "radio_rec: Received packet type: %d.\n", msg->msg_type);
-	  sendResp();
+	  
+	  dbg("radio_rec", "Received from mote %hhu packet type: %d, key: %s \n", call AMPacket.source(buf), msg->msg_type, msg->key);
+	  
+	
+	  //no pairing yet
+	  if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR){
+	 	if(memcmp(msg->key, key_p, 20)==0){ //--> questo non funzia ma se andasse tutto il resto dovrebbe proseguire
+	 		dbg("role", "info \n key_c: %s key_p: %s", key_c, key_p);
+	 		pairing_address = call AMPacket.source(buf);
+	 		paired =TRUE;
+      		dbg("role","Message before pairing received from %-14hhu|\n", pairing_address);
+      	}
+      	else{
+      		dbg("role", "keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
+      	}
+      } 
+      
+	  
 	}
 	return buf;
   }
   
   //************************* Read interface **********************//
-  event void FakeSensor.readDone(error_t result, uint16_t data) {
+  event void FakeSensor.readDone(error_t result, loc data) {
 
 	/* This event is triggered when the fake sensor finishes to read (after a Read.read()) 
 	 *
@@ -231,6 +257,7 @@ module sendAckC {
 	 * 1. Prepare the response (RESP)
 	 * 2. Send back (with a unicast message) the response
 	 * X. Use debug statement showing what's happening (i.e. message fields)
+	 
 	 */
 
 	 
@@ -239,8 +266,8 @@ module sendAckC {
 	 if(TOS_NODE_ID==2)
 	 	//dbg("radio_pack", "radio_pack: Sensor read value %hu.\n", data);
 	
-	 msg->msg_type = RESP;
-	 msg->value = data;
+	 //msg->msg_type = RESP;
+	 //msg->value = data;
 	 
 	 
 	 //call PacketAcknowledgements.requestAck(&packet); 
