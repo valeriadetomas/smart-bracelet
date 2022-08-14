@@ -34,6 +34,7 @@ module sendAckC {
   message_t packet;
 
   am_addr_t pairing_address;
+  loc last_child_loc;
   
   
 
@@ -175,8 +176,8 @@ module sendAckC {
 	
 	//***************** MilliTimer_alert interface ********************//
   event void MilliTimer_alert.fired() {
-		//dbg("alert", "ALERT! CHILD MISSING!: %s\n", key);
-		//dbg("alert", "location of the child, X = %hhu and Y = %hhu \n", last_child_loc.x, last_child_loc.y);
+		dbg("alert", "ALERT! CHILD MISSING!:\n");
+		dbg("alert", "location of the child, X = %hhu and Y = %hhu \n", last_child_loc.x, last_child_loc.y);
 	}
   
 
@@ -235,7 +236,7 @@ module sendAckC {
 	  //no pairing yet
 	  if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR){
 	  	dbg("role", "!!!!!!!!!!!info key_p: %s\n", key_p);
-	 	if(strcmp(msg->key, key_p)==0){ //--> questo non funzia ma se andasse tutto il resto dovrebbe proseguire
+	 	if(strcmp(msg->key, key_p)==0){ 
 	 		
 	 		pairing_address = call AMPacket.source(buf);
 	 		paired =TRUE;
@@ -246,6 +247,13 @@ module sendAckC {
       	}
       } 
       
+      if (msg->msg_type == 3){
+      	call MilliTimer_alert.startPeriodic(60000);
+      	last_child_loc.x = msg->x;
+      	last_child_loc.y = msg->y;
+      	last_child_loc.status = msg->status;
+      	dbg("role", "update last child location!");
+      } 
 	  
 	}
 	return buf;
@@ -254,32 +262,20 @@ module sendAckC {
   //************************* Read interface **********************//
   event void FakeSensor.readDone(error_t result, loc data) {
 
-	/* This event is triggered when the fake sensor finishes to read (after a Read.read()) 
-	 *
-	 * STEPS:
-	 * 1. Prepare the response (RESP)
-	 * 2. Send back (with a unicast message) the response
-	 * X. Use debug statement showing what's happening (i.e. message fields)
-	 
-	 */
-
-	 
+	// This event is triggered when the fake sensor finishes to read (after a Read.read()) 
+ 
 	 my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
 	 
-	 if(TOS_NODE_ID==2)
-	 	//dbg("radio_pack", "radio_pack: Sensor read value %hu.\n", data);
-	
-	 //msg->msg_type = RESP;
-	 //msg->value = data;
-	 
-	 
+	 msg->x = data.x;
+	 msg->y = data.y;
+	 msg->status = data.status;
+	 msg->msg_type = 3; //info type;
+	  
 	 //call PacketAcknowledgements.requestAck(&packet); 
 	
-	
-	 if (call AMSend.send(1, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID==2) {
+	 if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID%2==0) {
 		dbg("radio_send", "radio_send: response message type: %d.\n", msg->msg_type);
 	 }
-	
 	 
 }
 }

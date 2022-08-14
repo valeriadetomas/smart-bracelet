@@ -4,19 +4,12 @@
 
 //payload of the msg
 typedef nx_struct my_msg {
-	nx_uint16_t counter;
-	nx_uint16_t value;
 	nx_uint16_t msg_type;
 	nx_uint8_t key[20];
+	nx_int16_t x;
+    nx_int16_t y;
+    nx_int8_t status;
 } my_msg_t;
-
-/*typedef nx_struct pairing_msg{
-	nx_uint16_t type;
-	nx_uint16_t key[20];
-	nx_uint16_t loc;
-	nx_uint16_t id;
-	nx_uint16_t value;
-}pairing_msg_t;*/
 
 #define STANDING 11
 #define WALKING 12
