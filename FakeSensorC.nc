@@ -1,6 +1,6 @@
 generic configuration FakeSensorC() {
 
-	provides interface Read<uint16_t>;
+	provides interface Read<my_msg_t>;
 
 } implementation {
 
