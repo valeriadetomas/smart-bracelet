@@ -21,7 +21,7 @@ module sendAckC {
     interface Packet;
 	
 	//interface used to perform sensor reading (to get the value from a sensor)
-	interface Read<my_msg_t> as FakeSensor;
+	interface Read<uint16_t> as FakeSensor;
   }
 
 } implementation {
@@ -150,6 +150,8 @@ module sendAckC {
     	
     	my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
     	msg->msg_type = 1;
+    	memcpy(msg->key, key_p, 20);
+    	dbg("role", "key %s  !!!!!!!!!!!!!!!!!!!!!!\n", msg->key);
 		if (msg == NULL) {
 			return;
 		}
@@ -221,7 +223,7 @@ module sendAckC {
   }
   
   //************************* Read interface **********************//
-  event void FakeSensor.readDone(error_t result, my_msg_t data) {
+  event void FakeSensor.readDone(error_t result, uint16_t data) {
 
 	/* This event is triggered when the fake sensor finishes to read (after a Read.read()) 
 	 *
@@ -238,7 +240,7 @@ module sendAckC {
 	 	//dbg("radio_pack", "radio_pack: Sensor read value %hu.\n", data);
 	
 	 msg->msg_type = RESP;
-	 msg->value = data.value;
+	 msg->value = data;
 	 
 	 
 	 //call PacketAcknowledgements.requestAck(&packet); 

@@ -7,17 +7,16 @@ typedef nx_struct my_msg {
 	nx_uint16_t counter;
 	nx_uint16_t value;
 	nx_uint16_t msg_type;
-	nx_uint16_t x;
-	nx_uint16_t y;
+	nx_uint8_t key[20];
 } my_msg_t;
 
-typedef nx_struct pairing_msg{
+/*typedef nx_struct pairing_msg{
 	nx_uint16_t type;
 	nx_uint16_t key[20];
 	nx_uint16_t loc;
 	nx_uint16_t id;
 	nx_uint16_t value;
-}pairing_msg_t;
+}pairing_msg_t;*/
 
 
 
