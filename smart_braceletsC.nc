@@ -46,6 +46,7 @@ module smart_braceletsC {
 
 		if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(my_msg_t)) == SUCCESS) {
 			dbg("radio_send", "radio_send: request message type: %d. \n", msg->msg_type);
+			locked = TRUE;
 		}
 	}        
 
@@ -134,11 +135,11 @@ module smart_braceletsC {
 
 	 //Check if the ACK is received (read the docs)
 		if (&packet == buf && err == SUCCESS) {
-			locked = FALSE; 
+ 
 		 
 		 	if(&packet == buf && call PacketAcknowledgements.wasAcked(buf)){
 				dbg("radio_ack", "radio_ack: message was acked at time: %s \n", sim_time_string());
-				
+				locked = FALSE;
 		 		if (!paired){
 		 			locked = FALSE; 
 		 	 		dbg("radio_ack", "Still in pairing phase\n");
@@ -194,6 +195,7 @@ module smart_braceletsC {
 		 		pairing_address = call AMPacket.source(buf);
 		 		paired =TRUE;
 		  		dbg("role","role: message before pairing received from %-14hhu|\n", pairing_address);
+		  		locked = TRUE;
 		  		
 		  		call PacketAcknowledgements.requestAck(&packet); 
 		  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
