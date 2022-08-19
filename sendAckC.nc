@@ -190,9 +190,6 @@ module sendAckC {
 	 my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
 	 
 	 
-	 
-	
-	 
 	 if(&packet == buf && call PacketAcknowledgements.wasAcked(buf)){
 	
 	 	 if (!paired){
@@ -234,9 +231,30 @@ module sendAckC {
 	  
 	
 	  //no pairing yet
-	  if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR){
+	  if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR && TOS_NODE_ID%2 == 1){
 	  	dbg("role", "!!!!!!!!!!!info key_p: %s\n", key_p);
 	 	if(strcmp(msg->key, key_p)==0){ 
+	 		
+	 		pairing_address = call AMPacket.source(buf);
+	 		
+	 		paired =TRUE;
+      		dbg("role","Message before pairing received from %-14hhu|\n", pairing_address);
+      		
+      		call PacketAcknowledgements.requestAck(&packet); 
+      		
+      		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
+        		dbg("role", "pairing confirmation to node %hhu\n", pairing_address);	
+        		locked = TRUE;
+      		}
+      	}
+      	else{
+      		dbg("role", "keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
+      	}
+      } 
+      
+      else if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR && TOS_NODE_ID%2 == 0){
+	  	dbg("role", "!!!!!!!!!!!info key_c: %s\n", key_c);
+	 	if(strcmp(msg->key, key_c)==0){ 
 	 		
 	 		pairing_address = call AMPacket.source(buf);
 	 		paired =TRUE;
@@ -245,6 +263,15 @@ module sendAckC {
       	else{
       		dbg("role", "keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
       	}
+      }
+      
+      if(call AMPacket.source(buf) == pairing_address && paired){
+      	call MilliTimer_pairing.stop();
+	 	operation_mode = TRUE; //conclusa fase di pairing e continua fase di operation
+	 		
+	 	if (TOS_NODE_ID%2 == 0){ //nel caso di child
+	 		call MilliTimer_child.startPeriodic(10000); //una info ogni 10 secondi
+		}
       } 
       
       if (msg->msg_type == 3){
@@ -252,7 +279,7 @@ module sendAckC {
       	last_child_loc.x = msg->x;
       	last_child_loc.y = msg->y;
       	last_child_loc.status = msg->status;
-      	dbg("role", "update last child location!");
+      	dbg("role", "update last child location!\n");
       } 
 	  
 	}
