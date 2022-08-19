@@ -60,7 +60,7 @@ module sendAckC {
 	call PacketAcknowledgements.requestAck(&packet); 
 	
 	
-	if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID==1) {
+	if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID%2 == 1) {
 		dbg("radio_send", "radio_send: request message type: %d. \n", msg->msg_type);
 	}
 	
@@ -85,7 +85,7 @@ module sendAckC {
 	random_p = rand()%2;
 	random_c = rand()%2; 
 	
-	if(TOS_NODE_ID == 1 || TOS_NODE_ID == 3){
+	if(TOS_NODE_ID%2 == 1){
 		switch(random_p){
 		case 0:
 			strcpy(key_p, "4nchdjskcnfbghruejfn");
@@ -99,7 +99,7 @@ module sendAckC {
 		dbg("boot", "random_p %d key_p = %s\n", random_p, key_p);
 	}	
 	
-	if(TOS_NODE_ID == 2){
+	if(TOS_NODE_ID%2 == 0){
 		switch(random_c){
 		case 0:
 			strcpy(key_c, "4nchdjskcnfbghruejfn");
@@ -188,6 +188,8 @@ module sendAckC {
 	
 	 my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
 	 
+	 
+	 
 	
 	 
 	 if(&packet == buf && call PacketAcknowledgements.wasAcked(buf)){
@@ -202,7 +204,7 @@ module sendAckC {
 	 	 	call MilliTimer_pairing.stop();
 	 	 	operation_mode = TRUE; //conclusa fase di pairing e continua fase di operation
 	 	 	
-	 	 	if (TOS_NODE_ID==2 || TOS_NODE_ID ==4){ //nel caso di child
+	 	 	if (TOS_NODE_ID%2 == 0){ //nel caso di child
 	 	 		call MilliTimer_child.startPeriodic(10000); //una info ogni 10 secondi
 			}
 	 	 }
@@ -232,8 +234,9 @@ module sendAckC {
 	
 	  //no pairing yet
 	  if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR){
-	 	if(memcmp(msg->key, key_p, 20)==0){ //--> questo non funzia ma se andasse tutto il resto dovrebbe proseguire
-	 		dbg("role", "info \n key_c: %s key_p: %s", key_c, key_p);
+	  	dbg("role", "!!!!!!!!!!!info key_p: %s\n", key_p);
+	 	if(strcmp(msg->key, key_p)==0){ //--> questo non funzia ma se andasse tutto il resto dovrebbe proseguire
+	 		
 	 		pairing_address = call AMPacket.source(buf);
 	 		paired =TRUE;
       		dbg("role","Message before pairing received from %-14hhu|\n", pairing_address);
