@@ -1,7 +1,7 @@
-#include "sendAck.h"
+#include "smart_bracelets.h"
 #include "Timer.h"
 
-module sendAckC {
+module smart_braceletsC {
 
 	uses {
 /****** INTERFACES *****/
@@ -120,8 +120,13 @@ module sendAckC {
 
 //***************** MilliTimer_alert interface ********************//
   	event void MilliTimer_alert.fired() {
-		dbg("alert", "ALERT! CHILD MISSING!:\n");
-		dbg("alert", "location of the child, X = %hhu and Y = %hhu \n", last_child_loc.x, last_child_loc.y);
+  	
+		dbg("alert", "************************************************\n");
+  		dbg("alert", "**************** !!!!!ALERT!!!!! ***************\n");
+  		dbg("alert", "************************************************\n");
+  		dbg("alert", "************* !!!!!CHILD LOST!!!!! *************\n");
+  		dbg("alert", "************************************************\n");
+		dbg("alert", "alert: Last known location of the child, Coordinates: [X = %hhu; Y = %hhu] \n", last_child_loc.x, last_child_loc.y);
 	}
   
 //********************* AMSend interface ****************//
@@ -143,6 +148,7 @@ module sendAckC {
 		 	 	
 			 	 	if (TOS_NODE_ID % 2){
 						dbg("radio_ack","Parent bracelet\n");
+						dbg("radio_ack", "radio_ack: start missing alert timer\n");
 						call MilliTimer_alert.startOneShot(60000);
 					} else {
 						dbg("radio_ack","Child bracelet\n");
@@ -162,7 +168,7 @@ module sendAckC {
 		else{
 	  		my_msg_t* msg = (my_msg_t*)payload;
 	  
-	  	dbg("radio_rec", "radio_rec: received from mote %hhu type: %d, key: %-20s \n", call AMPacket.source(buf), msg->msg_type, msg->key);
+	  	dbg("radio_rec", "radio_rec: received from mote %hhu type: %d \n", call AMPacket.source(buf), msg->msg_type);
 	
 	  
 	  	if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR && TOS_NODE_ID%2 == 1){
@@ -178,7 +184,7 @@ module sendAckC {
 		    		locked = TRUE;
 		  		}
       		}else{
-      			dbg("role", "role:keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
+      			dbg("role", "role: keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
       		}
       	}	 
       	
@@ -195,7 +201,7 @@ module sendAckC {
 		    		locked = TRUE;
 		  		}
 		  	}else{
-		  		dbg("role", "role:keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
+		  		dbg("role", "role: keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
 		  	}
 		  }
 		  
@@ -209,8 +215,6 @@ module sendAckC {
 		  } 
 		  
 		  if (msg->msg_type == 3){
-		  	call MilliTimer_alert.startPeriodic(60000);
-		  	dbg("role", "info: start missing alert timer\n");
 		  	last_child_loc.x = msg->x;
 		  	last_child_loc.y = msg->y;
 		  	last_child_loc.status = msg->status;
@@ -218,6 +222,8 @@ module sendAckC {
 		  	if(msg->status == 14){
 		  		dbg("role", "************************************************\n");
 		  		dbg("role", "**************** !!!!!ALERT!!!!! ***************\n");
+		  		dbg("role", "************************************************\n");
+		  		dbg("role", "************* !!!!!CHILD FELL!!!!! *************\n");
 		  		dbg("role", "************************************************\n");
 		  	}
 		  }  
@@ -241,8 +247,8 @@ module sendAckC {
 		 call PacketAcknowledgements.requestAck(&packet); 
 	
 		 if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID%2==0) {
-			dbg("radio_send", "radio_send: response message type: %d.)\n", msg->msg_type);
-		    dbg("radio_send", "INFO MSG: Status %d.Cord X: %d. Cord Y: %d.\n", msg->status, msg->x, msg->y);
+			dbg("radio_send", "radio_send: response message type: %d.\n", msg->msg_type);
+		    dbg("radio_send", "INFO MSG: Status %d. Coordinates: [X = %d, Y = %d].\n", msg->status, msg->x, msg->y);
 		} 
 	}
 }

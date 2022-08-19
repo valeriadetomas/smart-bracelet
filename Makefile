@@ -1,3 +1,3 @@
-COMPONENT=sendAckAppC
+COMPONENT=smart_braceletsAppC
 include $(MAKERULES)
 

@@ -1,6 +1,6 @@
 
-#ifndef SENDACK_H
-#define SENDACK_H
+#ifndef SMART_BRACELETS_H
+#define SMART_BRACELETS_H
 
 //payload of the msg
 typedef nx_struct my_msg {

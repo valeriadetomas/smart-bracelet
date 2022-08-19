@@ -1,12 +1,12 @@
-#include "sendAck.h"
+#include "smart_bracelets.h"
 
-configuration sendAckAppC {}
+configuration smart_braceletsAppC {}
 
 implementation {
 
 
 /****** COMPONENTS *****/
-  components MainC, sendAckC as App;
+  components MainC, smart_braceletsC as App;
   //add the other components here
   components new TimerMilliC() as MilliTimer_pairing;
   components new TimerMilliC() as MilliTimer_child; //10s
