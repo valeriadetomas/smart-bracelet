@@ -39,15 +39,7 @@ module sendAckC {
   
   //***************** Send request function ********************//
 	void sendReq() {
-	/* This function is called when we want to send a request
-	 *
-	 * STEPS:
-	 * 1. Prepare the msg
-	 * 2. Set the ACK flag for the message using the PacketAcknowledgements interface
-	 *     (read the docs)
-	 * 3. Send an UNICAST message to the correct node
-	 * X. Use debug statements showing what's happening (i.e. message fields)
-	 */
+	/* This function is called when we want to send a request */
 
 		my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
 
@@ -57,18 +49,6 @@ module sendAckC {
 			dbg("radio_send", "radio_send: request message type: %d. \n", msg->msg_type);
 		}
 	}        
-
-//****************** Task send response *****************//
-	void check_pairing() {
-	/* This function is called when we receive the REQ message.
-	 * Nothing to do here. 
-	 * `call Read.read()` reads from the fake sensor.
-	 * When the reading is done it raises the event read done.
-	 */
-	 
-	 
-	//call FakeSensor.read();
-	}
 
 //***************** Boot interface ********************//
 	event void Boot.booted() {
@@ -112,10 +92,6 @@ module sendAckC {
 
 //***************** MilliTimer interface ********************//
 	event void MilliTimer_pairing.fired() {
-	/* This event is triggered every time the timer fires.
-	 * When the timer fires, we send a request
-	 * Fill this part...
-	 */
     
 		if(locked){return;}
 		
@@ -128,7 +104,7 @@ module sendAckC {
 			else if (TOS_NODE_ID ==2){
 				memcpy(msg->key, key_c, 20);
 		    }
-			dbg("role", "mote: %u key %-20s\n", TOS_NODE_ID, msg->key);
+			dbg("role", "role: Assigned key to mote: %u. KEY %-20s\n", TOS_NODE_ID, msg->key);
 			if (msg == NULL) {
 				return;
 			}
@@ -154,12 +130,11 @@ module sendAckC {
 
 	 //Check if the ACK is received (read the docs)
 		if (&packet == buf && err == SUCCESS) {
-	
-			dbg("radio_ack", "Packet sent correctly\n");
 			locked = FALSE; 
 		 
 		 	if(&packet == buf && call PacketAcknowledgements.wasAcked(buf)){
-	
+				dbg("radio_ack", "radio_ack: message was acked at time: %s \n", sim_time_string());
+				
 		 		if (!paired){
 		 			locked = FALSE; 
 		 	 		dbg("radio_ack", "Still in pairing phase\n");
@@ -181,21 +156,14 @@ module sendAckC {
 
 //***************************** Receive interface *****************//
 	event message_t* Receive.receive(message_t* buf,void* payload, uint8_t len) {
-	/* This event is triggered when a message is received 
-	 *
-	 * STEPS:
-	 * 1. Read the content of the message
-	 * 2. Check the type of message and do all the things that should be done
-	 * 3. quando ricevi info -> fai partire timer di 60 sec e salva location in last_child_loc
-	 */
+	// This event is triggered when a message is received 
 	
 	 
 		if (len != sizeof(my_msg_t)) {return buf;}
 		else{
 	  		my_msg_t* msg = (my_msg_t*)payload;
 	  
-	  	dbg("radio_rec", "Received from mote %hhu packet type: %d, key: %s \n", call AMPacket.source(buf), msg->msg_type, msg->key);
-	  	dbg("role","TOS NODE ID %d\n",TOS_NODE_ID);
+	  	dbg("radio_rec", "radio_rec: received from mote %hhu type: %d, key: %-20s \n", call AMPacket.source(buf), msg->msg_type, msg->key);
 	
 	  
 	  	if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR && TOS_NODE_ID%2 == 1){
@@ -203,34 +171,32 @@ module sendAckC {
 	 		
 		 		pairing_address = call AMPacket.source(buf);
 		 		paired =TRUE;
-		  		dbg("role","Message before pairing received from %-14hhu|\n",  pairing_address);
+		  		dbg("role","role: message before pairing received from %-14hhu|\n", pairing_address);
 		  		
 		  		call PacketAcknowledgements.requestAck(&packet); 
 		  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
-		    		dbg("role", "pairing confirmation to node %hhu\n", pairing_address);	
+		    		dbg("radio_send", "radio_send: pairing confirmation to node %hhu\n", pairing_address);	
 		    		locked = TRUE;
 		  		}
       		}else{
-      			dbg("role", "keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
+      			dbg("role", "role:keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
       		}
       	}	 
       	
       	if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR && TOS_NODE_ID%2 == 0){
-		  	dbg("role", "!!!!!!!!!!!info key_c: %s\n", key_c);
 		 	if(strcmp(msg->key, key_c)==0){ 
 		 		
 		 		pairing_address = call AMPacket.source(buf);
 		 		paired =TRUE;
-		  		dbg("role","Message before pairing received from %-14hhu|\n", pairing_address);
+		  		dbg("role","role: message before pairing received from %-14hhu|\n", pairing_address);
 		  		
 		  		call PacketAcknowledgements.requestAck(&packet); 
 		  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
-
-		    		dbg("role", "pairing confirmation to node %hhu\n", pairing_address);	
+		    		dbg("radio_send", "radio_send: pairing confirmation to node %hhu\n", pairing_address);
 		    		locked = TRUE;
 		  		}
 		  	}else{
-		  		dbg("role", "keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
+		  		dbg("role", "role:keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
 		  	}
 		  }
 		  
@@ -245,12 +211,13 @@ module sendAckC {
 		  
 		  if (msg->msg_type == 3){
 		  	call MilliTimer_alert.startPeriodic(60000);
+		  	dbg("role", "info: start missing alert timer\n");
 		  	last_child_loc.x = msg->x;
 		  	last_child_loc.y = msg->y;
 		  	last_child_loc.status = msg->status;
-		  	dbg("role", "update last child location!\n");
+		  	dbg("role", "info: update last child location!\n");
 		  	if(msg->status == 14){
-		  		dbg("role", "ALERT!\n\n\n\n\n");
+		  		dbg("role", "-----FALLING ALERT! GO CHECK ON HIM/HER!!!-----\n");
 		  	}
 		  }  
 		}
@@ -272,7 +239,8 @@ module sendAckC {
 		 call PacketAcknowledgements.requestAck(&packet); 
 	
 		 if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID%2==0) {
-			dbg("radio_send", "radio_send: response message type: %d.\n", msg->msg_type);
+			dbg("radio_send", "radio_send: response message type: %d.)\n", msg->msg_type);
+		    dbg("radio_send", "INFO MSG: Status %d.Cord X: %d. Cord Y: %d.\n", msg->status, msg->x, msg->y);
 		} 
 	}
 }
