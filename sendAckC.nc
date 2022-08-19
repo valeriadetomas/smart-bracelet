@@ -61,7 +61,7 @@ module sendAckC {
 	call PacketAcknowledgements.requestAck(&packet); 
 	
 	
-	if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID%2 == 1) {
+	if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(my_msg_t)) == SUCCESS) {
 		dbg("radio_send", "radio_send: request message type: %d. \n", msg->msg_type);
 	}
 	
@@ -185,10 +185,10 @@ module sendAckC {
   event void AMSend.sendDone(message_t* buf,error_t err) {
 
 	 //Check if the ACK is received (read the docs)
-	 
+	 if (&packet == buf && err == SUCCESS) {
 	
-	 my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
-	 
+	 dbg("radio_ack", "SEND DONE!!!!!!!!!\n");
+	 locked = FALSE; 
 	 
 	 if(&packet == buf && call PacketAcknowledgements.wasAcked(buf)){
 	
@@ -198,19 +198,9 @@ module sendAckC {
 	 	 	dbg("radio_ack", "Still in pairing phase\n");
 	 	 } 
 	 	 
-	 	 else {
-	 	 	call MilliTimer_pairing.stop();
-	 	 	operation_mode = TRUE; //conclusa fase di pairing e continua fase di operation
-	 	 	
-	 	 	if (TOS_NODE_ID%2 == 0){ //nel caso di child
-	 	 		call MilliTimer_child.startPeriodic(10000); //una info ogni 10 secondi
-			}
-	 	 }
-	 }else{
-	 		locked = FALSE;
-	 	
-	 }
-  }
+	 	}
+	}
+}
 
   //***************************** Receive interface *****************//
   event message_t* Receive.receive(message_t* buf,void* payload, uint8_t len) {
@@ -241,7 +231,6 @@ module sendAckC {
       		dbg("role","Message before pairing received from %-14hhu|\n", pairing_address);
       		
       		call PacketAcknowledgements.requestAck(&packet); 
-      		
       		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
         		dbg("role", "pairing confirmation to node %hhu\n", pairing_address);	
         		locked = TRUE;
@@ -252,20 +241,27 @@ module sendAckC {
       	}
       } 
       
-      else if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR && TOS_NODE_ID%2 == 0){
+      if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR && TOS_NODE_ID%2 == 0){
 	  	dbg("role", "!!!!!!!!!!!info key_c: %s\n", key_c);
 	 	if(strcmp(msg->key, key_c)==0){ 
 	 		
 	 		pairing_address = call AMPacket.source(buf);
 	 		paired =TRUE;
       		dbg("role","Message before pairing received from %-14hhu|\n", pairing_address);
+      		
+      		call PacketAcknowledgements.requestAck(&packet); 
+      		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
+
+        		dbg("role", "pairing confirmation to node %hhu\n", pairing_address);	
+        		locked = TRUE;
+      		}
       	}
       	else{
       		dbg("role", "keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
       	}
       }
       
-      if(call AMPacket.source(buf) == pairing_address && paired){
+      if(call AMPacket.destination(buf) == TOS_NODE_ID && paired){
       	call MilliTimer_pairing.stop();
 	 	operation_mode = TRUE; //conclusa fase di pairing e continua fase di operation
 	 		
@@ -280,6 +276,9 @@ module sendAckC {
       	last_child_loc.y = msg->y;
       	last_child_loc.status = msg->status;
       	dbg("role", "update last child location!\n");
+      	if(msg->status == 14){
+      		dbg("role", "ALERT!\n\n\n\n\n");
+      	}
       } 
 	  
 	}
@@ -298,7 +297,7 @@ module sendAckC {
 	 msg->status = data.status;
 	 msg->msg_type = 3; //info type;
 	  
-	 //call PacketAcknowledgements.requestAck(&packet); 
+	 call PacketAcknowledgements.requestAck(&packet); 
 	
 	 if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID%2==0) {
 		dbg("radio_send", "radio_send: response message type: %d.\n", msg->msg_type);
