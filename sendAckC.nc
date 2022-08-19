@@ -24,7 +24,6 @@ module sendAckC {
 
 }implementation{
 
-	int random_p, random_c;
 	char key_p[20], key_c[20];
 	bool locked = FALSE;
 	bool paired = FALSE;
@@ -98,10 +97,10 @@ module sendAckC {
 		else{	
 			my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
 			msg->msg_type = 1;
-			if (TOS_NODE_ID == 1){
+			if (TOS_NODE_ID%2 == 1){
 				memcpy(msg->key, key_p, 20);
 			}
-			else if (TOS_NODE_ID ==2){
+			else if (TOS_NODE_ID%2 == 0){
 				memcpy(msg->key, key_c, 20);
 		    }
 			dbg("role", "role: Assigned key to mote: %u. KEY %-20s\n", TOS_NODE_ID, msg->key);
@@ -217,7 +216,9 @@ module sendAckC {
 		  	last_child_loc.status = msg->status;
 		  	dbg("role", "info: update last child location!\n");
 		  	if(msg->status == 14){
-		  		dbg("role", "-----FALLING ALERT! GO CHECK ON HIM/HER!!!-----\n");
+		  		dbg("role", "************************************************\n");
+		  		dbg("role", "**************** !!!!!ALERT!!!!! ***************\n");
+		  		dbg("role", "************************************************\n");
 		  	}
 		  }  
 		}
@@ -236,6 +237,7 @@ module sendAckC {
 		 msg->status = data.status;
 		 msg->msg_type = 3; //info type;
 		  
+		 dbg("radio_send", "radio_send: Child status: %d.\n", msg->status);
 		 call PacketAcknowledgements.requestAck(&packet); 
 	
 		 if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS && TOS_NODE_ID%2==0) {

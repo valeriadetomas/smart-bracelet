@@ -22,19 +22,19 @@
 		location.x = call Random.rand16();
 	    location.y = call Random.rand16();
 		
-		prob_number = call Random.rand16();
+		prob_number = call Random.rand16()%10;
 		
 		
-		if (prob_number%10 <= 2){
+		if(prob_number <= 2){
 		  location.status = STANDING;
 		} 
-		if (prob_number%10 <= 5 && prob_number%10 >= 3){
+		else if (prob_number<= 5){
 		  location.status = WALKING;
 		} 
-		if (prob_number%10 <= 8 && prob_number%10 >=6){
+		else if (prob_number <= 8){
 		  location.status = RUNNING;
 		} 
-		else {
+		else{
 		  location.status = FALLING;
 		}
 		
