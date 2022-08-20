@@ -26,8 +26,8 @@ module smart_braceletsC {
 
 	char key_p[20], key_c[20];
 	bool locked = FALSE;
-	bool paired = FALSE;
-	bool operation_mode = FALSE;
+	bool paired[4] = {FALSE};
+	bool operation_mode[4] = {FALSE};
 	message_t packet;
 	am_addr_t pairing_address;
 	loc last_child_loc;
@@ -78,10 +78,10 @@ module smart_braceletsC {
 	event void SplitControl.startDone(error_t err){
 	  	
 	  	if(err == SUCCESS){
-	  		dbg("boot", "success\n");
+	  		dbg("boot", "boot: success\n");
 	  		call MilliTimer_pairing.startPeriodic(500);
 	  	}else{
-	  		dbg("boot", "else\n");
+	  		dbg("boot", "boot: failed\n");
 	  		call SplitControl.start();
 	  	}
   	}
@@ -97,7 +97,11 @@ module smart_braceletsC {
 		
 		else{	
 			my_msg_t* msg = (my_msg_t*)call Packet.getPayload(&packet, sizeof(my_msg_t));
-			msg->msg_type = 1;
+			
+			if (msg == NULL) {return;}
+			
+			msg->msg_type = 1; //PAIRING
+			
 			if (TOS_NODE_ID%2 == 1){
 				memcpy(msg->key, key_p, 20);
 			}
@@ -105,9 +109,8 @@ module smart_braceletsC {
 				memcpy(msg->key, key_c, 20);
 		    }
 			dbg("role", "role: Assigned key to mote: %u. KEY %-20s\n", TOS_NODE_ID, msg->key);
-			if (msg == NULL) {
-				return;
-			}
+			
+			
 
 			sendReq();
 		}
@@ -135,27 +138,22 @@ module smart_braceletsC {
 
 	 //Check if the ACK is received (read the docs)
 		if (&packet == buf && err == SUCCESS) {
- 
+			locked = FALSE; 
 		 
-		 	if(&packet == buf && call PacketAcknowledgements.wasAcked(buf)){
+		 	if(paired[TOS_NODE_ID] && call PacketAcknowledgements.wasAcked(buf)){
 				dbg("radio_ack", "radio_ack: message was acked at time: %s \n", sim_time_string());
-				locked = FALSE;
-		 		if (!paired){
-		 			locked = FALSE; 
-		 	 		dbg("radio_ack", "Still in pairing phase\n");
-		 	 	} 
-		 	 	
-		 	 	if(paired && operation_mode){
-		 	 	
-			 	 	if (TOS_NODE_ID % 2){
-						dbg("radio_ack","Parent bracelet\n");
-						dbg("radio_ack", "radio_ack: start missing alert timer\n");
-						call MilliTimer_alert.startOneShot(60000);
-					} else {
-						dbg("radio_ack","Child bracelet\n");
-						call MilliTimer_child.startPeriodic(10000);
-					}
-		 	 	}
+				
+		 		call MilliTimer_pairing.stop(); 
+		 		operation_mode[TOS_NODE_ID] = TRUE;
+		 		
+		 		if(TOS_NODE_ID%2 == 1){
+          			call MilliTimer_alert.startOneShot(60000);
+		 		}else{
+		 			call MilliTimer_child.startPeriodic(10000);
+		 		}
+		 		
+		 	}else if(operation_mode[TOS_NODE_ID]){
+		 		call FakeSensor.read();
 		 	}
 		}
 	}
@@ -176,14 +174,17 @@ module smart_braceletsC {
 	 		if(strcmp(msg->key, key_p)==0){ 
 	 		
 		 		pairing_address = call AMPacket.source(buf);
-		 		paired =TRUE;
-		  		dbg("role","role: message before pairing received from %-14hhu|\n", pairing_address);
+		 		paired[TOS_NODE_ID] = TRUE;
+		 		
+		 		if(!locked){
+		 			call PacketAcknowledgements.requestAck( &packet );
 		  		
-		  		call PacketAcknowledgements.requestAck(&packet); 
-		  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
-		    		dbg("radio_send", "radio_send: pairing confirmation to node %hhu\n", pairing_address);	
-		    		locked = TRUE;
-		  		}
+			  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
+						dbg("radio_send", "radio_send: pairing confirmation to node %hhu\n", pairing_address);	
+						locked = TRUE;
+			  		}
+		 		}
+		 		
       		}else{
       			dbg("role", "role: keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
       		}
@@ -193,26 +194,29 @@ module smart_braceletsC {
 		 	if(strcmp(msg->key, key_c)==0){ 
 		 		
 		 		pairing_address = call AMPacket.source(buf);
-		 		paired =TRUE;
-		  		dbg("role","role: message before pairing received from %-14hhu|\n", pairing_address);
-		  		locked = TRUE;
+		 		paired[TOS_NODE_ID] = TRUE;
 		  		
-		  		call PacketAcknowledgements.requestAck(&packet); 
-		  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
-		    		dbg("radio_send", "radio_send: pairing confirmation to node %hhu\n", pairing_address);
-		    		locked = TRUE;
-		  		}
+		  		if(!locked){
+		 			call PacketAcknowledgements.requestAck( &packet );
+		  		
+			  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
+						dbg("radio_send", "radio_send: pairing confirmation to node %hhu\n", pairing_address);	
+						locked = TRUE;
+			  		}
+		 		}
 		  	}else{
 		  		dbg("role", "role: keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
 		  	}
 		  }
 		  
-		  if(call AMPacket.destination(buf) == TOS_NODE_ID && paired){
+		  if(call AMPacket.destination(buf) == TOS_NODE_ID && paired[TOS_NODE_ID]){
 		  	call MilliTimer_pairing.stop();
-		 	operation_mode = TRUE; //conclusa fase di pairing e continua fase di operation
+		 	operation_mode[TOS_NODE_ID] = TRUE; //conclusa fase di pairing e continua fase di operation
 		 		
 		 	if (TOS_NODE_ID%2 == 0){ //nel caso di child
 		 		call MilliTimer_child.startPeriodic(10000); //una info ogni 10 secondi
+			}else{
+				call MilliTimer_alert.startOneShot(60000);
 			}
 		  } 
 		  
