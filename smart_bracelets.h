@@ -22,8 +22,10 @@ typedef struct location{
   uint8_t status;
 } loc;
 
-#define REQ 1
-#define RESP 2 
+#define PAIR 1
+#define CONF 2
+#define OPER 3
+
 
 
 enum{
