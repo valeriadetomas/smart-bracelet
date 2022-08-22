@@ -37,7 +37,7 @@ module smart_braceletsC {
 
 //***************** Boot interface ********************//
 	event void Boot.booted() {
-		dbg("boot","Application booted, generating key for node %d...\n", TOS_NODE_ID);
+		dbg("boot","BOOT: Application booted, generating key for mote %d...\n", TOS_NODE_ID);
 	
 		switch(TOS_NODE_ID){
 			case 1:
@@ -63,16 +63,16 @@ module smart_braceletsC {
 	event void SplitControl.startDone(error_t err){
 	  	
 	  	if(err == SUCCESS){
-	  		dbg("boot", "boot: success\n");
+	  		dbg("boot", "BOOT: success\n");
 	  		call MilliTimer_pairing.startPeriodic(1000);
 	  	}else{
-	  		dbg("boot", "boot: failed\n");
+	  		dbg("boot", "BOOT: failed\n");
 	  		call SplitControl.start();
 	  	}
   	}
   
 	event void SplitControl.stopDone(error_t err){
-		dbg("boot", "finish\n");
+		dbg("boot", "!!!!FINISH!!!!\n");
 	}
 
 //***************** MilliTimer interface ********************//
@@ -95,7 +95,7 @@ module smart_braceletsC {
 		    }
 
 			if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(my_msg_t)) == SUCCESS) {
-				dbg("radio_send", "radio_send: pairing message with key: %s. \n", msg->key);
+				dbg("radio_send", "RADIO_SEND: Sending broadcast message with key: %s\n", msg->key);
 				locked = TRUE;
 			}
 		}
@@ -103,7 +103,7 @@ module smart_braceletsC {
 
 //***************** MilliTimer_child interface ********************// 
   	event void MilliTimer_child.fired() {
-		dbg("operation_phase", "Call sensor read\n");
+		dbg("role", "ROLE: Call sensor read\n");
 		call FakeSensor.read();
 	}
 
@@ -115,7 +115,7 @@ module smart_braceletsC {
   		dbg("alert", "************************************************\n");
   		dbg("alert", "************* !!!!!CHILD LOST!!!!! *************\n");
   		dbg("alert", "************************************************\n");
-		dbg("alert", "alert: Last known location of the child, Coordinates: [X = %hhu; Y = %hhu] \n", last_child_loc.x, last_child_loc.y);
+		dbg("alert", "ALERT: Last known location of the child, Coordinates: [X = %hhu; Y = %hhu]\n", last_child_loc.x, last_child_loc.y);
 	}
   
 //********************* AMSend interface ****************//
@@ -128,11 +128,11 @@ module smart_braceletsC {
 			locked = FALSE; 
 			//prima della fase di pairing
 			if(pairing_mode[TOS_NODE_ID] && call PacketAcknowledgements.wasAcked(buf)){
-				dbg("radio_ack", "radio_ack: message broadcast was acked at time: %s \n", sim_time_string());
+				dbg("radio_ack", "RADIO_ACK: ACK received at time: %s\n", sim_time_string());
 			}
 			//nella fase di pairing
 			else if(!pairing_mode[TOS_NODE_ID] && !operation_mode[TOS_NODE_ID] && call PacketAcknowledgements.wasAcked(buf)){
-				dbg("radio_ack", "radio_ack: pairing phase completed!!!!\n");
+				dbg("role", "ROLE: !!!!PAIRING PHASE COMPLETED!!!!\n");
 				
 		 		call MilliTimer_pairing.stop(); 
 		 		
@@ -148,13 +148,13 @@ module smart_braceletsC {
 		 	}
 		 	//nella fase operation
 		 	else if(operation_mode[TOS_NODE_ID] && call PacketAcknowledgements.wasAcked(buf)){
-		 		dbg("radio_ack", "radio_ack: ACK received at time %s\n\n", sim_time_string());
+		 		dbg("radio_ack", "RADIO_ACK: ACK received at time: %s\n", sim_time_string());
 		 	}
 		 	
 		 	else if(operation_mode[TOS_NODE_ID] ){
-		 		dbg("radio_ack", "radio_ack: ACK NOT received\n");	
+		 		dbg("radio_ack", "RADIO_ACK: ACK NOT received\n");	
 		 	}else if(pairing_mode[TOS_NODE_ID]){
-		 		dbg("radio_ack", "radio_ack: ACK NOT received\n");
+		 		dbg("radio_ack", "RADIO_ACK: ACK NOT received\n");
 		 	}	
 		}
 	}
@@ -168,7 +168,7 @@ module smart_braceletsC {
 		else{
 	  		my_msg_t* msg = (my_msg_t*)payload;
 	  
-	  	dbg("radio_rec", "radio_rec: received from mote %hhu type: %d \n", call AMPacket.source(buf), msg->msg_type);
+	  	dbg("radio_rec", "RADIO_REC: Received from mote %hhu, massage type: %d\n", call AMPacket.source(buf), msg->msg_type);
 	
 	  
 		  	if (call AMPacket.destination(buf) == AM_BROADCAST_ADDR && TOS_NODE_ID%2 == 1 && strcmp(msg->key, key_p)==0){
@@ -182,7 +182,7 @@ module smart_braceletsC {
 			 			call PacketAcknowledgements.requestAck( &packet );
 			  		
 				  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
-							dbg("radio_send", "radio_send: pairing confirmation to node %hhu\n", pairing_address);	
+							dbg("radio_send", "RADIO_SEND: Sending pairing confirmation to mote %hhu\n", pairing_address);	
 							locked = TRUE;
 				  		}
 			 		}
@@ -199,14 +199,13 @@ module smart_braceletsC {
 			 			call PacketAcknowledgements.requestAck( &packet );
 			  		
 				  		if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
-							dbg("radio_send", "radio_send: pairing confirmation to node %hhu\n", pairing_address);	
-							dbg("radio_send", "radio_send: Pairing mode : [%d] Op mode : [%d]\n", pairing_mode[TOS_NODE_ID], operation_mode[TOS_NODE_ID] );
+							dbg("radio_send", "RADIO_SEND: Sending pairing confirmation to mote %hhu\n", pairing_address);	
 							locked = TRUE;
 				  		}
 			 		}
 		  	}
 		  	else if(call AMPacket.destination(buf) == AM_BROADCAST_ADDR ){
-		  		dbg("role", "role: keys do not match. msg received from %hhu\n", call AMPacket.source(buf));
+		  		dbg("radio_rec", "RADIO_REC: Keys do not match. Message received from mote %hhu\n", call AMPacket.source(buf));
 		  	}
 		  	
 			else if(call AMPacket.destination(buf) == TOS_NODE_ID && msg->msg_type ==2){
@@ -226,13 +225,14 @@ module smart_braceletsC {
 			  	last_child_loc.x = msg->x;
 			  	last_child_loc.y = msg->y;
 			  	last_child_loc.status = msg->status;
-			  	dbg("role", "info: update last child location!\n");
+			  	dbg("radio_rec", "RADIO_REC: Updating last child location!\n");
 			  	if(msg->status == 14){
-			  		dbg("role", "************************************************\n");
-			  		dbg("role", "**************** !!!!!ALERT!!!!! ***************\n");
-			  		dbg("role", "************************************************\n");
-			  		dbg("role", "************* !!!!!CHILD FELL!!!!! *************\n");
-			  		dbg("role", "************************************************\n");
+			  		dbg("alert", "************************************************\n");
+			  		dbg("alert", "**************** !!!!!ALERT!!!!! ***************\n");
+			  		dbg("alert", "************************************************\n");
+			  		dbg("alert", "************* !!!!!CHILD FELL!!!!! *************\n");
+			  		dbg("alert", "************************************************\n");
+			  		dbg("alert", "ALERT: Child fall location coordinates: [X = %hhu; Y = %hhu]\n", last_child_loc.x, last_child_loc.y);
 			  	}
 			  	call MilliTimer_alert.startOneShot(60000);
 			} 
@@ -258,8 +258,7 @@ module smart_braceletsC {
 			call PacketAcknowledgements.requestAck(&packet); 
 		
 			if (call AMSend.send(pairing_address, &packet, sizeof(my_msg_t)) == SUCCESS) {
-				dbg("radio_send", "radio_send: response message type: %d.\n", msg->msg_type);
-				dbg("radio_send", "INFO MSG: Status %d. Coordinates: [X = %d, Y = %d].\n", msg->status, msg->x, msg->y);
+				dbg("radio_send", "RADIO_SEND: Sending message type: %d, status: %d. Coordinates: [X = %d, Y = %d]\n", msg->msg_type, msg->status, msg->x, msg->y);
 		  		locked = TRUE;
 			}
 		 }
