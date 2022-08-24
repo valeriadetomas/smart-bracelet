@@ -115,7 +115,10 @@ for i in range(1, 5):
 
 print "Start simulation with TOSSIM! \n\n\n";
 
-for i in range(0,3000):
+for i in range(0,5000):
+	if (i == 3000): 
+		node2.turnOff();
+		print "\n>>NODE 2 UNREACHABLE..<<\n"
 	t.runNextEvent()
 	
 print "\n\n\nSimulation finished!";
