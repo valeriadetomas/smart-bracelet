@@ -1,0 +1,165 @@
+DEBUG (1): BOOT: Application booted, generating key for mote 1...
+DEBUG (4): BOOT: Application booted, generating key for mote 4...
+DEBUG (3): BOOT: Application booted, generating key for mote 3...
+DEBUG (2): BOOT: Application booted, generating key for mote 2...
+DEBUG (1): BOOT: success
+DEBUG (2): BOOT: success
+DEBUG (4): BOOT: success
+DEBUG (3): BOOT: success
+DEBUG (2): RADIO_SEND: Sending broadcast message with key: 4nchdjskcnfbghruejfn
+DEBUG (4): RADIO_SEND: Sending broadcast message with key: 8nchdde4kcnfbhr908fn
+DEBUG (1): RADIO_SEND: Sending broadcast message with key: 4nchdjskcnfbghruejfn
+DEBUG (3): RADIO_SEND: Sending broadcast message with key: 8nchdde4kcnfbhr908fn
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 1
+DEBUG (2): RADIO_REC: Received from mote 4, massage type: 1
+DEBUG (2): RADIO_REC: Keys do not match. Message received from mote 4
+DEBUG (1): RADIO_REC: Received from mote 4, massage type: 1
+DEBUG (1): RADIO_REC: Keys do not match. Message received from mote 4
+DEBUG (4): RADIO_REC: Received from mote 3, massage type: 1
+DEBUG (4): RADIO_SEND: Sending pairing confirmation to mote 3
+DEBUG (2): RADIO_REC: Received from mote 3, massage type: 1
+DEBUG (2): RADIO_REC: Keys do not match. Message received from mote 3
+DEBUG (1): RADIO_REC: Received from mote 3, massage type: 1
+DEBUG (1): RADIO_REC: Keys do not match. Message received from mote 3
+DEBUG (3): RADIO_REC: Received from mote 2, massage type: 1
+DEBUG (3): RADIO_REC: Keys do not match. Message received from mote 2
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 1
+DEBUG (2): RADIO_REC: Received from mote 1, massage type: 1
+DEBUG (2): RADIO_SEND: Sending pairing confirmation to mote 1
+DEBUG (4): RADIO_REC: Received from mote 1, massage type: 1
+DEBUG (4): RADIO_REC: Keys do not match. Message received from mote 1
+DEBUG (3): RADIO_REC: Received from mote 1, massage type: 1
+DEBUG (3): RADIO_REC: Keys do not match. Message received from mote 1
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 2
+DEBUG (4): ROLE: !!!!PAIRING PHASE COMPLETED!!!!
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 2
+DEBUG (2): ROLE: !!!!PAIRING PHASE COMPLETED!!!!
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = 67, Y = -75]
+DEBUG (2): ROLE: Call sensor read
+DEBUG (2): RADIO_SEND: Sending message type: 3, status: 13. Coordinates: [X = -11, Y = -45]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:0:10.765502887
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 3
+DEBUG (1): RADIO_REC: Updating last child location!
+DEBUG (2): RADIO_ACK: ACK received at time: 0:0:10.774352985
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 13. Coordinates: [X = -44, Y = -116]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:0:20.529083221
+DEBUG (2): ROLE: Call sensor read
+DEBUG (2): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = 127, Y = -121]
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 3
+DEBUG (1): RADIO_REC: Updating last child location!
+DEBUG (2): RADIO_ACK: ACK received at time: 0:0:20.539108239
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 13. Coordinates: [X = 56, Y = -7]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:0:30.288757328
+DEBUG (2): ROLE: Call sensor read
+DEBUG (2): RADIO_SEND: Sending message type: 3, status: 14. Coordinates: [X = -120, Y = -4]
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 3
+DEBUG (1): RADIO_REC: Updating last child location!
+DEBUG (1): ************************************************
+DEBUG (1): **************** !!!!!ALERT!!!!! ***************
+DEBUG (1): ************************************************
+DEBUG (1): ************* !!!!!CHILD FELL!!!!! *************
+DEBUG (1): ************************************************
+DEBUG (1): ALERT: Child fall location coordinates: [X = 136; Y = 252]
+DEBUG (2): RADIO_ACK: ACK received at time: 0:0:30.303848234
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = -123, Y = -7]
+DEBUG (2): ROLE: Call sensor read
+DEBUG (2): RADIO_SEND: Sending message type: 3, status: 13. Coordinates: [X = -23, Y = -55]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:0:40.061614952
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 3
+DEBUG (1): RADIO_REC: Updating last child location!
+DEBUG (2): RADIO_ACK: ACK received at time: 0:0:40.066375718
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = -64, Y = 106]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:0:49.822265616
+DEBUG (2): ROLE: Call sensor read
+DEBUG (2): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = -90, Y = -90]
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 3
+DEBUG (1): RADIO_REC: Updating last child location!
+DEBUG (2): RADIO_ACK: ACK received at time: 0:0:49.831665027
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 14. Coordinates: [X = 101, Y = 118]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (3): ************************************************
+DEBUG (3): **************** !!!!!ALERT!!!!! ***************
+DEBUG (3): ************************************************
+DEBUG (3): ************* !!!!!CHILD FELL!!!!! *************
+DEBUG (3): ************************************************
+DEBUG (3): ALERT: Child fall location coordinates: [X = 101; Y = 118]
+DEBUG (4): RADIO_ACK: ACK received at time: 0:0:59.589782695
+DEBUG (2): ROLE: Call sensor read
+DEBUG (2): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = -42, Y = 71]
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 3
+DEBUG (1): RADIO_REC: Updating last child location!
+DEBUG (2): RADIO_ACK: ACK received at time: 0:0:59.597656235
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 13. Coordinates: [X = -7, Y = -92]
+DEBUG (2): ROLE: Call sensor read
+DEBUG (2): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = -55, Y = -4]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:1:9.358230554
+DEBUG (1): RADIO_REC: Received from mote 2, massage type: 3
+DEBUG (1): RADIO_REC: Updating last child location!
+DEBUG (2): RADIO_ACK: ACK received at time: 0:1:9.365173314
+
+>>NODE 2 UNREACHABLE..<<
+
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 13. Coordinates: [X = 88, Y = -29]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:1:19.122421237
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 12. Coordinates: [X = -68, Y = -53]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:1:28.888977017
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = 49, Y = -86]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:1:38.655197107
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 11. Coordinates: [X = 1, Y = -35]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:1:48.417526227
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 12. Coordinates: [X = -1, Y = -19]
+DEBUG (4): RADIO_ACK: ACK NOT received
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 12. Coordinates: [X = -62, Y = 68]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:2:7.949523904
+DEBUG (1): ************************************************
+DEBUG (1): **************** !!!!!ALERT!!!!! ***************
+DEBUG (1): ************************************************
+DEBUG (1): ************* !!!!!CHILD LOST!!!!! *************
+DEBUG (1): ************************************************
+DEBUG (1): ALERT: Last known location of the child, Coordinates: [X = 201; Y = 252]
+DEBUG (4): ROLE: Call sensor read
+DEBUG (4): RADIO_SEND: Sending message type: 3, status: 13. Coordinates: [X = 122, Y = -36]
+DEBUG (3): RADIO_REC: Received from mote 4, massage type: 3
+DEBUG (3): RADIO_REC: Updating last child location!
+DEBUG (4): RADIO_ACK: ACK received at time: 0:2:17.715850804
+
+
+
+Simulation finished!
+
